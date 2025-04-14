@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat</title>
+  <link rel="stylesheet" href="insert thing here">
+</head>
+<body>
+  <div class="container">
+    <p class="msg">Messages:</p>
+    <div id="messages" class="messages"></div>
+    <form id="msgForm" class="msgForm">
+      <input type="text" placeholder="Send message" class="input" id="inputBox" />
+      <input type="submit" class="btn" value="Send">
+    </form>
+    <br />
+    <!-- Emoji Buttons -->
+    <input type="button" value="😀" id="1Ebutton" class="ebnt" />
+    <input type="button" value="😢" id="2Ebutton" class="ebnt" />
+    <input type="button" value="🐱" id="3Ebutton" class="ebnt" />
+    <input type="button" value="💀" id="4Ebutton" class="ebnt" />
+    <input type="button" value="🗿" id="5Ebutton" class="ebnt" />
+    <input type="button" value="🔥" id="6Ebutton" class="ebnt" />
+    <input type="button" value="😡" id="7Ebutton" class="ebnt" />
+    <input type="button" value="🍆" id="8Ebutton" class="ebnt" />
+    <input type="button" value="🕳️" id="9Ebutton" class="ebnt" />
+    <input type="button" value="🤣" id="10Ebutton" class="ebnt" />
+    <br /><br />
+
+    <!-- Username Display -->
+    <p id="usrname"></p>
+    <p></p>
+
+    <!-- Image Input -->
+    <input type="text" placeholder="Put Image/GIF Address" class="input_img" id="img-url" />
+    <input type="button" value="Input Image/GIF" id="img-input" class="ebnt" />
+
+    <!-- Clear Chat Button (WIP) -->
+    <br /><br />
+    <input type="button" value="🧹 Clear Chat" id="clear-chat" class="ebnt" style="display:none;" />
+  </div>
+
+  <!-- Emoji and Image JS -->
+  <script type="text/javascript">
+    const emojiButtons = [
+      ["1Ebutton", "😀"],
+      ["2Ebutton", "😢"],
+      ["3Ebutton", "🐱"],
+      ["4Ebutton", "💀"],
+      ["5Ebutton", "🗿"],
+      ["6Ebutton", "🔥"],
+      ["7Ebutton", "😡"],
+      ["8Ebutton", "🍆"],
+      ["9Ebutton", "🕳️"],
+      ["10Ebutton", "🤣"],
+    ];
+
+    emojiButtons.forEach(([id, emoji]) => {
+      document.getElementById(id).addEventListener('click', () => {
+        document.getElementById('inputBox').value += emoji;
+      });
+    });
+
+    document.getElementById("img-input").addEventListener('click', function () {
+      const inputBox = document.getElementById('inputBox');
+      const inputUrl = document.getElementById('img-url').value;
+      const imgOutput = `<img src="${inputUrl}" height="100" width="100" />`;
+      inputBox.value += imgOutput;
+    });
+  </script>
+
+  <!-- Firebase Scripts -->
+  <script type="module" src="insent firebase thing here"></script>
+  <script type="module" src="insert firebase thing here"></script>
+  <script type="module">
+    import { initializeApp } from "insert firebase thing here";
+    import { getDatabase, ref, push, onChildAdded, remove } from "insert firebase thing here";
+
+    const firebaseConfig = {
+      apiKey: "do it yourself",
+      authDomain: "chato-saurus.firebaseapp.com",
+      databaseURL: "https://chato-saurus-default-rtdb.firebaseio.com",
+      projectId: "chato-saurus",
+      storageBucket: "chato-saurus.appspot.com",
+      messagingSenderId: "1083073882669",
+      appId: "1:1083073882669:web:6cc8bc8216337149e466a4",
+      measurementId: "G-YDRLK45H7N"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let username = prompt("Please enter your username:");
+    if (!username) {
+      username = "Anonymous";
+    } else {
+      if (username.length > 50) {
+        alert("Error: Invalid Username, too long");
+        username = "Long Username";
+      }
+      }
+
+      if (username === "Mage") {
+        let Admin = prompt("What’s the password?");
+        if (Admin === "tridenttech") {
+          alert("Hello, admin Mage!");
+          username = `<span style="color: blue">Founder – mage </span>`;
+          window.isAdmin = true;
+        } else {
+          alert("Why would you even try, you’re pathetic.");
+          username = `<span style="color:brown;">Disgusting Fake Hacker Rat</span>`;
+        }
+      }
+
+
+
+    document.getElementById("usrname").innerHTML = username;
+
+    const msgForm = document.getElementById("msgForm");
+    msgForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const inputBox = document.getElementById("inputBox");
+      const message = inputBox.value.trim();
+      if (message === "") return;
+
+      const messageWithUsername = `<strong>${username}:</strong> ${message}`;
+      push(ref(db, "messages"), {
+        message: messageWithUsername,
+        timestamp: Date.now(),
+      });
+
+      inputBox.value = "";
+    });
+
+    const messagesDiv = document.getElementById("messages");
+    onChildAdded(ref(db, "messages"), (snapshot) => {
+      const data = snapshot.val();
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("msgCtn");
+
+      const time = new Date(data.timestamp);
+      const timeString = time.toLocaleString();
+
+      messageDiv.innerHTML = `
+        <div>${data.message}</div>
+        <div style="font-size: 0.8em; color: gray;">${timeString}</div>
+      `;
+
+      if (window.isAdmin) {
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.classList.add("deleteButton");
+        deleteButton.addEventListener("click", () => {
+          remove(ref(db, "messages/" + snapshot.key));
+          messageDiv.remove();
+        });
+        messageDiv.appendChild(deleteButton);
+      }
+
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+
+    // 🧹 Clear Chat Button (WIP)
+    if (window.isAdmin) {
+      const clearBtn = document.getElementById("clear-chat");
+      clearBtn.style.display = "inline-block";
+
+      clearBtn.addEventListener("click", async () => {
+        const confirmClear = confirm("Are you sure you want to clear ALL messages?");
+        if (!confirmClear) return;
+
+        try {
+          await remove(ref(db, "messages"));
+          document.getElementById("messages").innerHTML = "";
+        } catch (error) {
+          alert("Error clearing chat: " + error.message);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
